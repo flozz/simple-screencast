@@ -7,6 +7,8 @@ from . import APPLICATION_ID
 from .screencast import Screencast
 from .main_window import MainWindow
 from .recording_window import RecordingWindow
+from .helpers import find_data_path
+
 
 class SimpleScreencastApplication(Gtk.Application):
 
@@ -46,12 +48,17 @@ class SimpleScreencastApplication(Gtk.Application):
         action.connect("activate", self.action_quit_cb)
         self.add_action(action)
 
+        # App Menu
+        builder = Gtk.Builder()
+        builder.add_from_file(find_data_path("ui/app-menu.ui"))
+        self.set_app_menu(builder.get_object("app-menu"))
+
     def do_activate(self):
         app_windows = self.get_windows()
 
         if not app_windows:
             self.switch_state(self.STATE_MAIN)
-        elif self.main_window.get_visible():
+        else:
             win = app_windows[0]
             win.hide()
             win.show_all()
