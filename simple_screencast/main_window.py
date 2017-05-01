@@ -3,13 +3,16 @@ gi.require_version("Gtk", "3.0")
 
 from gi.repository import Gtk
 
+from . import PROGRAM_NAME
+
 
 class MainWindow(Gtk.ApplicationWindow):
 
     def __init__(self, app):
         Gtk.ApplicationWindow.__init__(self,
                 application=app,
-                title="Simple Screencast")
+                title=PROGRAM_NAME,
+                icon_name="simple-screencast")
 
         area_button = Gtk.Button(label="Record Area")
         area_button.connect("clicked", self._area_button_clicked)

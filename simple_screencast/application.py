@@ -3,7 +3,7 @@ gi.require_version("Gtk", "3.0")
 
 from gi.repository import Gtk, Gio
 
-from . import APPLICATION_ID
+from . import APPLICATION_ID, VERSION, PROGRAM_NAME
 from .screencast import Screencast
 from .main_window import MainWindow
 from .recording_window import RecordingWindow
@@ -20,8 +20,6 @@ class SimpleScreencastApplication(Gtk.Application):
                 application_id=APPLICATION_ID,
                 flags=Gio.ApplicationFlags.FLAGS_NONE)
         self.screencast = None
-        self.main_window = None
-        self.recording_window = None
 
     def switch_state(self, state):
         app_windows = self.get_windows()
@@ -42,6 +40,10 @@ class SimpleScreencastApplication(Gtk.Application):
         Gtk.Application.do_startup(self)
 
         self.screencast = Screencast()
+
+        Gtk.IconTheme.append_search_path(
+                Gtk.IconTheme.get_default(),
+                find_data_path("icons"))
 
         # Create actions
         action_quit = Gio.SimpleAction.new("quit", None)
@@ -81,6 +83,8 @@ class SimpleScreencastApplication(Gtk.Application):
         builder.add_from_file(find_data_path("ui/about-window.ui"))
         about_window = builder.get_object("about-window")
         about_window.set_transient_for(app_window)
+        about_window.set_version(VERSION)
+        about_window.set_program_name(PROGRAM_NAME)
 
         about_window.show_all()
 
