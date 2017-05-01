@@ -44,9 +44,13 @@ class SimpleScreencastApplication(Gtk.Application):
         self.screencast = Screencast()
 
         # Create actions
-        action = Gio.SimpleAction.new("quit", None)
-        action.connect("activate", self.action_quit_cb)
-        self.add_action(action)
+        action_quit = Gio.SimpleAction.new("quit", None)
+        action_quit.connect("activate", self.action_quit)
+        self.add_action(action_quit)
+
+        action_about = Gio.SimpleAction.new("about", None)
+        action_about.connect("activate", self.action_about)
+        self.add_action(action_about)
 
         # App Menu
         builder = Gtk.Builder()
@@ -67,6 +71,16 @@ class SimpleScreencastApplication(Gtk.Application):
         Gtk.Application.do_shutdown(self)
         self.screencast.stop_recording()
 
-    def action_quit_cb(self, action, parameter):
+    def action_quit(self, action, param):
         self.quit()
+
+    def action_about(self, action, param):
+        app_window = self.get_windows()[0]
+
+        builder = Gtk.Builder()
+        builder.add_from_file(find_data_path("ui/about-window.ui"))
+        about_window = builder.get_object("about-window")
+        about_window.set_transient_for(app_window)
+
+        about_window.show_all()
 
