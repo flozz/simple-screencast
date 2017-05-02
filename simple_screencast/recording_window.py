@@ -19,5 +19,4 @@ class RecordingWindow(Gtk.ApplicationWindow):
 
     def _stop_button_clicked(self, widget):
         app = self.get_application()
-        app.switch_state(app.STATE_MAIN)
-        app.screencast.stop_recording()
+        app.activate_action("stop-recording")

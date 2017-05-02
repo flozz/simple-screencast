@@ -23,7 +23,10 @@ class Screencast:
         return self._options
 
     def set_options(self, options):
-        raise NotImplementedError()
+        raise NotImplementedError()  # TODO
+
+    def select_screen(self):
+        raise NotImplementedError()  # TODO
 
     def select_area(self):
         try:
@@ -34,18 +37,15 @@ class Screencast:
                 raise e
             return None
 
-    def select_screen(self):
-        raise NotImplementedError()
+    def record_desktop(self):
+        return self._screencast.Screencast(self._options["file-template"], {})
+
+    def record_screen(self, screen_id):
+        raise NotImplementedError()  # TODO
 
     def record_area(self, x, y, width, height):
         return self._screencast.ScreencastArea(x, y, width, height,
                 self._options["file-template"], {})
-
-    def record_screen(self, screen_id):
-        raise NotImplementedError()
-
-    def record_all_desktop(self):
-        raise NotImplementedError()
 
     def stop_recording(self):
         return self._screencast.StopScreencast()

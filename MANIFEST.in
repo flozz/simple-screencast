@@ -1,3 +1,4 @@
 include simple_screencast/data/ui/app-menu.ui
+include simple_screencast/data/ui/main-window.ui
 include simple_screencast/data/ui/about-window.ui
 include simple_screencast/data/icons/hicolor/scalable/apps/simple-screencast.svg

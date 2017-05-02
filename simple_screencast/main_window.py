@@ -1,30 +1,47 @@
 import gi
 gi.require_version("Gtk", "3.0")
 
-from gi.repository import Gtk
+from gi.repository import Gtk, Gio
 
 from . import PROGRAM_NAME
+from .helpers import find_data_path
 
 
 class MainWindow(Gtk.ApplicationWindow):
+
+    TARGET_DESKTOP = "record-desktop"
+    TARGET_SCREEN = "record-screen"
+    TARGET_AREA = "record-area"
 
     def __init__(self, app):
         Gtk.ApplicationWindow.__init__(self,
                 application=app,
                 title=PROGRAM_NAME,
-                icon_name="simple-screencast")
+                icon_name="simple-screencast",
+                default_width=100,
+                default_height=100,
+                resizable=False)
 
-        area_button = Gtk.Button(label="Record Area")
-        area_button.connect("clicked", self._area_button_clicked)
-        self.add(area_button)
+        self._target = self.TARGET_DESKTOP
 
-    def _area_button_clicked(self, widget):
-        app = self.get_application()
+        builder = Gtk.Builder()
+        builder.add_from_file(find_data_path("ui/main-window.ui"))
+        builder.connect_signals(self)
 
-        area_rect = app.screencast.select_area()
+        main_window_content = builder.get_object("main-window-content")
+        main_window_content.unparent()
+        self.add(main_window_content)
 
-        if not area_rect:
+    def _screencast_target_changed(self, widget):
+        if not widget.get_active():
             return
+        btns = {
+            "screencast-target-desktop": self.TARGET_DESKTOP,
+            "screencast-target-screen": self.TARGET_SCREEN,
+            "screencast-target-area": self.TARGET_AREA,
+        }
+        self._target = btns[widget.get_name()]
 
-        app.switch_state(app.STATE_RECORDING)
-        app.screencast.record_area(*area_rect)
+    def _start_recording_button_clicked(self, widget):
+        app = self.get_application()
+        app.activate_action(self._target)
