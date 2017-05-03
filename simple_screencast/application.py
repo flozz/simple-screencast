@@ -82,8 +82,7 @@ class SimpleScreencastApplication(Gtk.Application):
             self.switch_state(self.STATE_MAIN)
         else:
             win = app_windows[0]
-            win.hide()
-            win.show()
+            win.present()
 
     def do_shutdown(self):
         Gtk.Application.do_shutdown(self)
