@@ -5,6 +5,7 @@ from gi.repository import Gtk, Gio
 
 from . import APPLICATION_ID, VERSION, PROGRAM_NAME
 from .screencast import Screencast
+from .monitors import Monitors
 from .main_window import MainWindow
 from .recording_window import RecordingWindow
 from .helpers import find_data_path
@@ -14,6 +15,9 @@ class SimpleScreencastApplication(Gtk.Application):
 
     STATE_MAIN = "main"
     STATE_RECORDING = "recording"
+
+    screencast = None
+    monitors = None
 
     def __init__(self):
         Gtk.Application.__init__(self,
@@ -40,6 +44,7 @@ class SimpleScreencastApplication(Gtk.Application):
         Gtk.Application.do_startup(self)
 
         self.screencast = Screencast()
+        self.monitors = Monitors()
 
         Gtk.IconTheme.append_search_path(
                 Gtk.IconTheme.get_default(),
