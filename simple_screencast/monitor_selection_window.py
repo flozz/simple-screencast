@@ -11,7 +11,12 @@ from .helpers import find_data_path
 
 class MonitorSelectionWindow(Gtk.ApplicationWindow):
 
-    selected_screen = None
+    selected_monitor = None
+
+    _canvas_width = None
+    _canvas_height = None
+    _scale = None
+    _monitors_rects = []
 
     def __init__(self, app):
         Gtk.ApplicationWindow.__init__(self,
@@ -29,7 +34,9 @@ class MonitorSelectionWindow(Gtk.ApplicationWindow):
         recording_window_content.unparent()
         self.add(recording_window_content)
 
-    def on_drawing_area_draw(self, widget, cr):
+        self._calculate_display_geometries()
+
+    def _calculate_display_geometries(self):
         CANVAS_MAX_WIDTH = 600
         CANVAS_MAX_HEIGHT = 500
 
@@ -65,35 +72,60 @@ class MonitorSelectionWindow(Gtk.ApplicationWindow):
             canvas_width = round(display_height * scale)
             canvas_height = CANVAS_MAX_HEIGHT
 
-        widget.set_size_request(canvas_width, canvas_height)
-
-        # TODO check that the requested size has been applyied (widget.get_allocated_width/height)
-
         # Calculate offsets to center the screens on the canvas
         offset_x = round((canvas_width - display_width * scale) / 2)
         offset_y = round((canvas_height - display_height * scale) / 2)
 
-        def _draw_monitor(cr, monitor):
-            PADDING = 3
-            COLOR_BG = (0x00/255, 0xFF/255, 0xFF/255)
-            COLOR_FG = (0x33/255, 0x33/255, 0x33/255)
+        # Calculate monitors rectangles
+        monitors_rects = []
 
-            monitor_rect_x = offset_x + round((monitor["x"] - min_x) * scale) + PADDING
-            monitor_rect_y = offset_y + round((monitor["y"] - min_y) * scale) + PADDING
-            monitor_rect_w = round(monitor["width"] * scale) - PADDING * 2
-            monitor_rect_h = round(monitor["height"] * scale) - PADDING * 2
+        for monitor in monitors:
+            PADDING = 3
+
+            monitors_rects.append({
+                "id": monitor["id"],
+                "x": offset_x + round((monitor["x"] - min_x) * scale) + PADDING,
+                "y": offset_y + round((monitor["y"] - min_y) * scale) + PADDING,
+                "width": round(monitor["width"] * scale) - PADDING * 2,
+                "height": round(monitor["height"] * scale) - PADDING * 2})
+
+        self._canvas_width = canvas_width
+        self._canvas_height = canvas_height
+        self._scale = scale
+        self._monitors_rects = monitors_rects
+
+    def on_drawing_area_draw(self, widget, cr):
+        widget.set_size_request(self._canvas_width, self._canvas_height)
+
+        def _draw_monitor(cr, x=0, y=0, width=0, height=0, **kwargs):
+            COLOR_BG = (0x88/255, 0x88/255, 0x88/255)
+            if self.selected_monitor == kwargs["id"]:
+                COLOR_BG = (0x00/255, 0xFF/255, 0xFF/255)
+            COLOR_FG = (0x33/255, 0x33/255, 0x33/255)
 
             # TODO draw the wallpaper, if any, instead of a color
             cr.set_source_rgb(*COLOR_BG)
-            cr.rectangle(monitor_rect_x, monitor_rect_y, monitor_rect_w, monitor_rect_h)
+            cr.rectangle(x, y, width, height)
             cr.fill()
 
             cr.set_source_rgb(*COLOR_FG)
-            cr.rectangle(monitor_rect_x, monitor_rect_y, monitor_rect_w, monitor_rect_h)
+            cr.rectangle(x, y, width, height)
             cr.stroke()
 
             # TODO draw screen labels
 
-        for monitor in monitors:
-            _draw_monitor(cr, monitor)
+        for monitor_rect in self._monitors_rects:
+            _draw_monitor(cr, **monitor_rect)
 
+    def on_drawing_area_button_press_event(self, widget, event):
+        for monitor_rect in self._monitors_rects:
+            if event.x < monitor_rect["x"]:
+                continue
+            if event.x > monitor_rect["x"] + monitor_rect["width"]:
+                continue
+            if event.y < monitor_rect["y"]:
+                continue
+            if event.y > monitor_rect["y"] + monitor_rect["height"]:
+                continue
+            self.selected_monitor = monitor_rect["id"]
+            self.queue_draw()
