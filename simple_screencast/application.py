@@ -44,7 +44,6 @@ class SimpleScreencastApplication(Gtk.Application):
         Gtk.Application.do_startup(self)
 
         self.screencast = Screencast()
-        self.monitors = Monitors()
 
         Gtk.IconTheme.append_search_path(
                 Gtk.IconTheme.get_default(),
@@ -116,12 +115,14 @@ class SimpleScreencastApplication(Gtk.Application):
         app_window = self.get_windows()[0]
 
         def _monitor_selected_cb(monitor_id):
-            app_window.show()
+            if monitor_id == None:
+                app_window.show()
+                return
             self.screencast.record_monitor(monitor_id)
+            self.switch_state(self.STATE_RECORDING)
 
         app_window.hide()
         self.screencast.select_monitor_async(_monitor_selected_cb)
-
 
     def action_record_area(self, action, param):
         rectangle = self.screencast.select_area()

@@ -2,6 +2,7 @@ from gi.repository import GLib
 import pydbus
 
 from .monitor_selection_window import MonitorSelectionWindow
+from .monitors import Monitors
 
 
 GNOME_SHELL_SCREENSHOT = "org.gnome.Shell.Screenshot"
@@ -41,14 +42,20 @@ class Screencast:
             return None
 
     def record_desktop(self):
-        return self._screencast.Screencast(self._options["file-template"], {})
+        return self._screencast.Screencast(self._options["file-template"], {})  # TODO options
 
     def record_monitor(self, monitor_id):
-        raise NotImplementedError()  # TODO
+        for monitor in Monitors().list_monitors():
+            if monitor["id"] != monitor_id:
+                continue
+            self._screencast.ScreencastArea(monitor["x"], monitor["y"],
+                    monitor["width"], monitor["height"],
+                    self._options["file-template"], {})  # TODO options
+            break
 
     def record_area(self, x, y, width, height):
         return self._screencast.ScreencastArea(x, y, width, height,
-                self._options["file-template"], {})
+                self._options["file-template"], {})  # TODO options
 
     def stop_recording(self):
         return self._screencast.StopScreencast()
