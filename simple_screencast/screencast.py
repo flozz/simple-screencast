@@ -1,6 +1,8 @@
 from gi.repository import GLib
 import pydbus
 
+from .monitor_selection_window import MonitorSelectionWindow
+
 
 GNOME_SHELL_SCREENSHOT = "org.gnome.Shell.Screenshot"
 GNOME_SHELL_SCREENCAST = "org.gnome.Shell.Screencast"
@@ -25,8 +27,9 @@ class Screencast:
     def set_options(self, options):
         raise NotImplementedError()  # TODO
 
-    def select_screen(self):
-        raise NotImplementedError()  # TODO
+    def select_monitor_async(self, callback):
+        win = MonitorSelectionWindow(callback)
+        win.show()
 
     def select_area(self):
         try:
@@ -40,7 +43,7 @@ class Screencast:
     def record_desktop(self):
         return self._screencast.Screencast(self._options["file-template"], {})
 
-    def record_screen(self, screen_id):
+    def record_monitor(self, monitor_id):
         raise NotImplementedError()  # TODO
 
     def record_area(self, x, y, width, height):

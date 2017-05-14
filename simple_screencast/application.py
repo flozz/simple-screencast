@@ -113,7 +113,15 @@ class SimpleScreencastApplication(Gtk.Application):
         self.switch_state(self.STATE_RECORDING)
 
     def action_record_screen(self, action, param):
-        raise NotImplementedError()  # TODO
+        app_window = self.get_windows()[0]
+
+        def _monitor_selected_cb(monitor_id):
+            app_window.show()
+            self.screencast.record_monitor(monitor_id)
+
+        app_window.hide()
+        self.screencast.select_monitor_async(_monitor_selected_cb)
+
 
     def action_record_area(self, action, param):
         rectangle = self.screencast.select_area()

@@ -7,24 +7,28 @@ from gi.repository import Gtk, Gdk
 
 from . import PROGRAM_NAME
 from .helpers import find_data_path
+from .monitors import Monitors
 
 
-class MonitorSelectionWindow(Gtk.ApplicationWindow):
+class MonitorSelectionWindow(Gtk.Window):
 
     selected_monitor = None
+
+    _callback = None
+    _recording_button = None
 
     _canvas_width = None
     _canvas_height = None
     _scale = None
     _monitors_rects = []
 
-    def __init__(self, app):
-        Gtk.ApplicationWindow.__init__(self,
-                application=app,
+    def __init__(self, callback):
+        Gtk.Window.__init__(self,
                 title=PROGRAM_NAME,
                 icon_name="simple-screencast",
-                resizable=False,
-                show_menubar=False)
+                resizable=False)
+
+        self._callback = callback
 
         builder = Gtk.Builder()
         builder.add_from_file(find_data_path("ui/monitor-selection-window.ui"))
@@ -34,14 +38,16 @@ class MonitorSelectionWindow(Gtk.ApplicationWindow):
         recording_window_content.unparent()
         self.add(recording_window_content)
 
+        self._recording_button = builder.get_object("start-recording")
+        self.connect("delete-event", self.cancel)
+
         self._calculate_display_geometries()
 
     def _calculate_display_geometries(self):
         CANVAS_MAX_WIDTH = 600
         CANVAS_MAX_HEIGHT = 500
 
-        app = self.get_application()
-        monitors = list(app.monitors.list_monitors())
+        monitors = list(Monitors().list_monitors())
 
         # Calculate the display geometry
         min_x = float("+inf")
@@ -129,3 +135,12 @@ class MonitorSelectionWindow(Gtk.ApplicationWindow):
                 continue
             self.selected_monitor = monitor_rect["id"]
             self.queue_draw()
+            self._recording_button.set_sensitive(True)
+
+    def validate(self, *args):
+        self.destroy()
+        self._callback(self.selected_monitor)
+
+    def cancel(self, *args):
+        self.destroy()
+        self._callback(None)
