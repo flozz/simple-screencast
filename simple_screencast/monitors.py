@@ -1,17 +1,28 @@
-import pydbus
-
-
-MUTTER_DISPLAYCONFIG = "org.gnome.Mutter.DisplayConfig"
+from gi.repository import GLib, Gio
 
 
 class Monitors:
 
     def __init__(self):
-        self._bus = pydbus.SessionBus()
-        self._displayconfig = self._bus.get(MUTTER_DISPLAYCONFIG)
+        self._bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+        self._displayconfig_bus_proxy = Gio.DBusProxy.new_sync(
+                self._bus,
+                Gio.DBusProxyFlags.NONE,
+                None,
+                "org.gnome.Mutter.DisplayConfig",
+                "/org/gnome/Mutter/DisplayConfig",
+                "org.gnome.Mutter.DisplayConfig",
+                None)
 
     def list_monitors(self):
-        serial, crtcs, outputs, modes, max_screen_width, max_screen_height = self._displayconfig.GetResources()
+        response = self._displayconfig_bus_proxy.call_sync(
+                "GetResources",
+                None,
+                Gio.DBusCallFlags.NONE,
+                -1,
+                None)
+
+        serial, crtcs, outputs, modes, max_screen_width, max_screen_height = response.unpack()
 
         for _, _, id_, _, _, _, _, rr_output in outputs:
             for crtcid, _, x, y, width, height, _, _, _, _ in crtcs:
