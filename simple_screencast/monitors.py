@@ -13,6 +13,14 @@ class Monitors:
                 "/org/gnome/Mutter/DisplayConfig",
                 "org.gnome.Mutter.DisplayConfig",
                 None)
+        self._shell_bus_proxy = Gio.DBusProxy.new_sync(
+                self._bus,
+                Gio.DBusProxyFlags.NONE,
+                None,
+                "org.gnome.Shell",
+                "/org/gnome/Shell",
+                "org.gnome.Shell",
+                None)
 
     def list_monitors(self):
         response = self._displayconfig_bus_proxy.call_sync(
@@ -43,4 +51,34 @@ class Monitors:
                     "serial": rr_output["serial"],
                     "vendor": rr_output["vendor"]}
                 break
+
+    def get_labels(self):
+        monitors = self.list_monitors()
+        labels = {}
+        for monitor in monitors:
+            labels[monitor["id"]] = str(monitor["id"] + 1)
+        return labels
+
+    def show_labels(self, labels=None):
+        if not labels:
+            labels = self.get_labels()
+
+        g_labels = GLib.Variant.new_tuple(
+                GLib.Variant("a{uv}", {i: GLib.Variant.new_string(v) for i, v in labels.items()})
+                )
+
+        self._shell_bus_proxy.call(
+                "ShowMonitorLabels",
+                g_labels,
+                Gio.DBusCallFlags.NONE,
+                -1,
+                None)
+
+    def hide_labels(self):
+        self._shell_bus_proxy.call_sync(
+                "HideMonitorLabels",
+                None,
+                Gio.DBusCallFlags.NONE,
+                -1,
+                None)
 
