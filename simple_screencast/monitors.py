@@ -75,7 +75,7 @@ class Monitors:
                 None)
 
     def hide_labels(self):
-        self._shell_bus_proxy.call_sync(
+        self._shell_bus_proxy.call(
                 "HideMonitorLabels",
                 None,
                 Gio.DBusCallFlags.NONE,
