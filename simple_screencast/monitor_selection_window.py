@@ -17,6 +17,8 @@ class MonitorSelectionWindow(Gtk.Window):
     _callback = None
     _recording_button = None
 
+    _monitor = None
+
     _canvas_width = None
     _canvas_height = None
     _scale = None
@@ -39,15 +41,19 @@ class MonitorSelectionWindow(Gtk.Window):
         self.add(recording_window_content)
 
         self._recording_button = builder.get_object("start-recording")
-        self.connect("delete-event", self.cancel)
+        self._monitor = Monitors()
 
         self._calculate_display_geometries()
+
+        self.connect("delete-event", self.cancel)
+        self.connect("focus-in-event", self.on_focus_in_event)
+        self.connect("focus-out-event", self.on_focus_out_event)
 
     def _calculate_display_geometries(self):
         CANVAS_MAX_WIDTH = 600
         CANVAS_MAX_HEIGHT = 500
 
-        monitors = list(Monitors().list_monitors())
+        monitors = list(self._monitor.list_monitors())
 
         # Calculate the display geometry
         min_x = float("+inf")
@@ -137,10 +143,18 @@ class MonitorSelectionWindow(Gtk.Window):
             self.queue_draw()
             self._recording_button.set_sensitive(True)
 
+    def on_focus_in_event(self, widget, event):
+        labels = self._monitor.get_labels()
+        self._monitor.show_labels(labels)
+
+    def on_focus_out_event(self, widget, event):
+        self._monitor.hide_labels()
+
     def validate(self, *args):
         self.destroy()
         self._callback(self.selected_monitor)
 
     def cancel(self, *args):
+        self._monitor.hide_labels()
         self.destroy()
         self._callback(None)
