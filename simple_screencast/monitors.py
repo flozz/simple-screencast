@@ -32,12 +32,13 @@ class Monitors:
 
         serial, crtcs, outputs, modes, max_screen_width, max_screen_height = response.unpack()
 
-        for _, _, id_, _, _, _, _, rr_output in outputs:
+        for id_, _, output_crtcid, _, _, _, _, rr_output in outputs:
             for crtcid, _, x, y, width, height, _, _, _, _ in crtcs:
-                if crtcid != id_:
+                if crtcid != output_crtcid:
                     continue
                 yield {
                     "id": id_,
+                    "label": str(id_ + 1),
                     "x": x,
                     "y": y,
                     "width": width,
@@ -56,7 +57,7 @@ class Monitors:
         monitors = self.list_monitors()
         labels = {}
         for monitor in monitors:
-            labels[monitor["id"]] = str(monitor["id"] + 1)
+            labels[monitor["id"]] = monitor["label"]
         return labels
 
     def show_labels(self, labels=None):
