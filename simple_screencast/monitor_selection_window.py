@@ -96,6 +96,7 @@ class MonitorSelectionWindow(Gtk.Window):
 
             monitors_rects.append({
                 "id": monitor["id"],
+                "label": monitor["label"],
                 "x": offset_x + round((monitor["x"] - min_x) * scale) + PADDING,
                 "y": offset_y + round((monitor["y"] - min_y) * scale) + PADDING,
                 "width": round(monitor["width"] * scale) - PADDING * 2,
@@ -108,6 +109,9 @@ class MonitorSelectionWindow(Gtk.Window):
 
     def on_drawing_area_draw(self, widget, cr):
         widget.set_size_request(self._canvas_width, self._canvas_height)
+
+        COLOR_LABELS_BG = (0x33/255, 0x33/255, 0x33/255)
+        COLOR_LABELS_TEXT = (0xFF/255, 0xFF/255, 0xFF/255)
 
         def _draw_monitor(cr, x=0, y=0, width=0, height=0, **kwargs):
             COLOR_BG = (0x88/255, 0x88/255, 0x88/255)
@@ -124,7 +128,20 @@ class MonitorSelectionWindow(Gtk.Window):
             cr.rectangle(x, y, width, height)
             cr.stroke()
 
-            # TODO draw screen labels
+            # draw screen labels
+            cr.set_source_rgb(*COLOR_LABELS_BG)
+            cr.rectangle(x + 10, y + 10, 30, 30)
+            cr.fill();
+
+                # cr.select_font_face
+            cr.set_source_rgb(*COLOR_LABELS_TEXT)
+            cr.set_font_size(20)
+            x_bearing, y_bearing, width, height = cr.text_extents(kwargs["label"])[:4]
+            cr.move_to(
+                    x + 10 + 15 - x_bearing - width / 2,
+                    y + 10 + 15 - y_bearing - height / 2
+                    )
+            cr.show_text(kwargs["label"])
 
         for monitor_rect in self._monitors_rects:
             _draw_monitor(cr, **monitor_rect)
@@ -151,6 +168,7 @@ class MonitorSelectionWindow(Gtk.Window):
         self._monitor.hide_labels()
 
     def validate(self, *args):
+        self._monitor.hide_labels()
         self.destroy()
         self._callback(self.selected_monitor)
 
