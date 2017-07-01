@@ -110,31 +110,35 @@ class MonitorSelectionWindow(Gtk.Window):
     def on_drawing_area_draw(self, widget, cr):
         widget.set_size_request(self._canvas_width, self._canvas_height)
 
-        COLOR_LABELS_BG = (0x33/255, 0x33/255, 0x33/255)
-        COLOR_LABELS_TEXT = (0xFF/255, 0xFF/255, 0xFF/255)
+        style = self.get_style_context()
+        COLOR_SCREEN_BG = style.get_color(Gtk.StateFlags.BACKDROP)
+        COLOR_SCREEN_BG_SELECTED = style.get_color(Gtk.StateFlags.LINK)
+        COLOR_SCREEN_BORDER = style.get_color(Gtk.StateFlags.ACTIVE)
+
+        COLOR_LABELS_BG = (0x33/255, 0x33/255, 0x33/255, 1)
+        COLOR_LABELS_TEXT = (0xFF/255, 0xFF/255, 0xFF/255, 1)
 
         def _draw_monitor(cr, x=0, y=0, width=0, height=0, **kwargs):
-            COLOR_BG = (0x88/255, 0x88/255, 0x88/255)
+            bg_color = COLOR_SCREEN_BG
             if self.selected_monitor == kwargs["id"]:
-                COLOR_BG = (0x00/255, 0xFF/255, 0xFF/255)
-            COLOR_FG = (0x33/255, 0x33/255, 0x33/255)
+                bg_color = COLOR_SCREEN_BG_SELECTED
+            border_color = COLOR_SCREEN_BORDER
 
             # TODO draw the wallpaper, if any, instead of a color
-            cr.set_source_rgb(*COLOR_BG)
+            cr.set_source_rgba(*bg_color)
             cr.rectangle(x, y, width, height)
             cr.fill()
 
-            cr.set_source_rgb(*COLOR_FG)
+            cr.set_source_rgba(*border_color)
             cr.rectangle(x, y, width, height)
             cr.stroke()
 
             # draw screen labels
-            cr.set_source_rgb(*COLOR_LABELS_BG)
+            cr.set_source_rgba(*COLOR_LABELS_BG)
             cr.rectangle(x + 10, y + 10, 30, 30)
             cr.fill();
 
-                # cr.select_font_face
-            cr.set_source_rgb(*COLOR_LABELS_TEXT)
+            cr.set_source_rgba(*COLOR_LABELS_TEXT)
             cr.set_font_size(20)
             x_bearing, y_bearing, width, height = cr.text_extents(kwargs["label"])[:4]
             cr.move_to(
