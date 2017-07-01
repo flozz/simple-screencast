@@ -55,6 +55,7 @@
                       <object class="GtkRadioButton">
                         <property name="label" translatable="yes">Select a screen to record</property>
                         <property name="name">screencast-target-screen</property>
+                        <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
                         <property name="active">True</property>

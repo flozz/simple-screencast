@@ -1,5 +1,8 @@
 from gi.repository import GLib, Gio
 
+from .monitor_selection_window import MonitorSelectionWindow
+from .monitors import Monitors
+
 
 class Screencast:
 
@@ -34,8 +37,9 @@ class Screencast:
     def set_options(self, options):
         raise NotImplementedError()  # TODO
 
-    def select_screen(self):
-        raise NotImplementedError()  # TODO
+    def select_monitor_async(self, callback):
+        win = MonitorSelectionWindow(callback)
+        win.show()
 
     def select_area(self):
         try:
@@ -57,15 +61,31 @@ class Screencast:
                     "Screencast",
                     GLib.Variant.new_tuple(
                         GLib.Variant.new_string(self._options["file-template"]),
-                        GLib.Variant("a{sv}", {})
+                        GLib.Variant("a{sv}", {})  # TODO options
                         ),
                     Gio.DBusCallFlags.NONE,
                     -1,
                     None)
         return response.unpack()
 
-    def record_screen(self, screen_id):
-        raise NotImplementedError()  # TODO
+    def record_monitor(self, monitor_id):
+        for monitor in Monitors().list_monitors():
+            if monitor["id"] != monitor_id:
+                continue
+            response = self._screencast_bus_proxy.call_sync(
+                        "ScreencastArea",
+                        GLib.Variant.new_tuple(
+                            GLib.Variant.new_int32(monitor["x"]),
+                            GLib.Variant.new_int32(monitor["y"]),
+                            GLib.Variant.new_int32(monitor["width"]),
+                            GLib.Variant.new_int32(monitor["height"]),
+                            GLib.Variant.new_string(self._options["file-template"]),
+                            GLib.Variant("a{sv}", {})  # TODO options
+                            ),
+                        Gio.DBusCallFlags.NONE,
+                        -1,
+                        None)
+            return response.unpack()
 
     def record_area(self, x, y, width, height):
         response = self._screencast_bus_proxy.call_sync(
@@ -76,7 +96,7 @@ class Screencast:
                         GLib.Variant.new_int32(width),
                         GLib.Variant.new_int32(height),
                         GLib.Variant.new_string(self._options["file-template"]),
-                        GLib.Variant("a{sv}", {})
+                        GLib.Variant("a{sv}", {})  # TODO options
                         ),
                     Gio.DBusCallFlags.NONE,
                     -1,

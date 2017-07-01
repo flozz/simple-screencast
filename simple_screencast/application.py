@@ -5,6 +5,7 @@ from gi.repository import Gtk, Gio
 
 from . import APPLICATION_ID, VERSION, PROGRAM_NAME
 from .screencast import Screencast
+from .monitors import Monitors
 from .main_window import MainWindow
 from .recording_window import RecordingWindow
 from .helpers import find_data_path
@@ -14,6 +15,9 @@ class SimpleScreencastApplication(Gtk.Application):
 
     STATE_MAIN = "main"
     STATE_RECORDING = "recording"
+
+    screencast = None
+    monitors = None
 
     def __init__(self):
         Gtk.Application.__init__(self,
@@ -108,7 +112,17 @@ class SimpleScreencastApplication(Gtk.Application):
         self.switch_state(self.STATE_RECORDING)
 
     def action_record_screen(self, action, param):
-        raise NotImplementedError()  # TODO
+        app_window = self.get_windows()[0]
+
+        def _monitor_selected_cb(monitor_id):
+            if monitor_id == None:
+                app_window.show()
+                return
+            self.screencast.record_monitor(monitor_id)
+            self.switch_state(self.STATE_RECORDING)
+
+        app_window.hide()
+        self.screencast.select_monitor_async(_monitor_selected_cb)
 
     def action_record_area(self, action, param):
         rectangle = self.screencast.select_area()
